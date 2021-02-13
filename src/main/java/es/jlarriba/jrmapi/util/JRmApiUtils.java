@@ -40,9 +40,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class JRmApiUtils {
     
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(JRmApiUtils.class);
     public static final String WORKDIR = "temp"+File.separatorChar;
-    // private static final int NOT_FOUND = -1;
     public static final char EXTENSION_SEPARATOR = '.';
     
     public static File createZipDirectory(String id) {

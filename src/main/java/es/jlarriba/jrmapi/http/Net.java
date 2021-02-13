@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class Net {
     
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(Net.class);
     private HttpClient client;
     
     public Net() {

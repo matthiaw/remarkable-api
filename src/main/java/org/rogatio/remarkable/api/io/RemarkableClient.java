@@ -226,6 +226,8 @@ public class RemarkableClient extends RequestClient {
 		List<Object> uploadMetadataDoc = new ArrayList<>();
 		uploadMetadataDoc.add(metadataDoc);
 
+		logger.debug("Create directory '"+name+"'");
+		
 		net.put(UPDATE_STATUS, userToken, uploadMetadataDoc);
 	}
 

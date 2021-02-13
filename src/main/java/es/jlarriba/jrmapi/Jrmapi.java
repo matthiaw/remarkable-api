@@ -46,7 +46,7 @@ import org.apache.logging.log4j.Logger;
  * @author juanlarriba
  */
 public class Jrmapi {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(Jrmapi.class);
     
     private static final String BASE_URL = "https://document-storage-production-dot-remarkable-production.appspot.com";
     private static final String LIST_DOCS = BASE_URL + "/document-storage/json/2/docs";
