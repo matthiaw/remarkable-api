@@ -1,4 +1,10 @@
 /target/
-/application-20210212.log
 /application.properties
 dependency-reduced-pom.xml
+/application-*
+/templates
+/exports
+/notebooks
+/remarkable-console.jar
+/temp/
+
