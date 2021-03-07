@@ -246,8 +246,8 @@ public class Util {
 	public static void createPng(Content notebook, double scale) {
 		for (Page page : notebook.getPages()) {
 			try {
-				Svg2Png.createPng(page, scale);
-				Svg2Png.createThumbnail(page);
+				Svg2Png.createPngFromFile(page, scale);
+				Svg2Png.createThumbnailFromFile(page, true);
 			} catch (TranscoderException | IOException e) {
 				logger.error("Error creating png", e);
 			}
@@ -259,17 +259,21 @@ public class Util {
 	 *
 	 * @param notebook the notebook
 	 */
-	public static void createSvg(Content notebook) {
+	public static void createSvg(Content notebook, boolean forceOverwrite) {
 		for (Page page : notebook.getPages()) {
 
-			String orientation = page.getNotebook().getContentData().getOrientation();
-			if (orientation.equals("portrait")) {
-				SvgDocument.createPortrait(page);
-			} else {
-				SvgDocument.createLandscape(page);
-			}
+			File f = new File(getFilename(page, "svg"));
 
-			SvgMerger.merge(page, page.getTemplateName(), new File(getFilename(page, "svg")));
+			if (!f.exists() || forceOverwrite) {
+				String orientation = page.getNotebook().getContentData().getOrientation();
+				if (orientation.equals("portrait")) {
+					SvgDocument.createPortrait(page);
+				} else {
+					SvgDocument.createLandscape(page);
+				}
+
+				SvgMerger.merge(page, page.getTemplateName(), f);
+			}
 		}
 	}
 
@@ -336,7 +340,6 @@ public class Util {
 //			parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
 //			parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
 
-			
 			zipFile.addFile(fileToZip);
 		} catch (ZipException e) {
 		} catch (IOException e) {

@@ -19,16 +19,25 @@ package org.rogatio.remarkable.api.io.file;
 
 import static java.lang.String.format;
 
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.Throwables;
 import org.rogatio.remarkable.api.model.content.Layer;
 import org.rogatio.remarkable.api.model.content.Page;
 import org.rogatio.remarkable.api.model.content.PencilType;
@@ -131,22 +140,47 @@ public class SvgDocument {
 			writer.write("\"/>\n");
 		}
 	}
-
-	/**
-	 * Creates the landscape.
-	 *
-	 * @param page the page
-	 * @param fileName the file name
-	 */
+	
 	public static void createLandscape(Page page, String fileName) {
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+			createLandscape(page, writer);
+		} catch (IOException e) {
+		}
+
+	}
+
+//	public BufferedImage createImageFromSVG(String svg) {
+//	    Reader reader = new BufferedReader(new StringReader(svg));
+//	    TranscoderInput svgImage = new TranscoderInput(reader);
+//
+//	    BufferedImageTranscoder transcoder = new BufferedImageTranscoder(0);
+////	    transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, (float) component.getWidth());
+////	    transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, (float) component.getHeight());
+//	    try {
+//	        transcoder.transcode(svgImage, null);
+//	    } catch (TranscoderException e) {
+////	        throw Throwables.propagate(e);
+//	    }
+//
+//	    return transcoder.getBufferedImage();
+//	}
+	
+	/**
+	 * Creates the landscape.
+	 *
+	 * @param page     the page
+	 * @param fileName the file name
+	 */
+	public static void createLandscape(Page page, Writer writer) {
+		try {
+			//BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
 
 			writer.write(format(
 					"<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"100%%\" width=\"100%%\" viewBox=\"0 0 %d %d\">",
 					page.getVerticalWidth(), page.getHorizontalWidth()));
 
-			int delta = - Math.abs((page.getVerticalWidth() - page.getHorizontalWidth()) / 2);
+			int delta = -Math.abs((page.getVerticalWidth() - page.getHorizontalWidth()) / 2);
 
 			writer.write(
 					format("<g id=\"%s\" style=\"display:inline\" transform=\"rotate(90 %d %d) translate(%d %d)\">",
@@ -179,6 +213,15 @@ public class SvgDocument {
 		}
 	}
 
+	public static void createPortrait(Page page, String fileName) {
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+			createPortrait(page, writer);
+		} catch (IOException e) {
+		}
+
+	}
+
 	/**
 	 * See https://github.com/reHackable/maxio/blob/master/tools/rM2svg
 	 * 
@@ -187,10 +230,10 @@ public class SvgDocument {
 	 * @param page     the page
 	 * @param fileName the file name
 	 */
-	public static void createPortrait(Page page, String fileName) {
+	public static void createPortrait(Page page, Writer writer) {
 
 		try {
-			BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+			// BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
 
 			writer.write(format(
 					"<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"100%%\" width=\"100%%\" viewBox=\"0 0 %d %d\">",

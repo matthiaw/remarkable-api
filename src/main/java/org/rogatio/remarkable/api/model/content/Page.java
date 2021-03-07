@@ -29,6 +29,8 @@ import org.apache.logging.log4j.Logger;
 import org.rogatio.remarkable.api.io.file.SvgTemplateLoader;
 import org.rogatio.remarkable.api.io.file.Util;
 
+import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
+
 /**
  * The Class Page.
  * 

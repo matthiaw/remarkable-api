@@ -29,10 +29,12 @@ import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.batik.transcoder.TranscoderException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rogatio.remarkable.api.io.PropertiesCache;
 import org.rogatio.remarkable.api.io.RemarkableClient;
+import org.rogatio.remarkable.api.io.file.Svg2Png;
 import org.rogatio.remarkable.api.io.file.Util;
 import org.rogatio.remarkable.api.model.content.Content;
 import org.rogatio.remarkable.api.model.content.ContentData;
@@ -107,13 +109,13 @@ public class RemarkableManager {
 		// load new user token
 		try {
 			userToken = client.newUserToken(deviceToken);
-			
-			if (userToken==null) {
+
+			if (userToken == null) {
 				logger.error("User token could not be loaded. Device token seems wrong. Stop application.");
-				System.exit(0);			
+				System.exit(0);
 			}
-			
-			logger.info("New user token requested: "+userToken);
+
+			logger.info("New user token requested: " + userToken);
 		} catch (IOException e) {
 			logger.error("Error creating user token", e);
 		}
@@ -377,34 +379,39 @@ public class RemarkableManager {
 
 			}
 
-			rNotebook.setContentData(contentData);
-			logger.debug("Notebook '" + rNotebook.getName() + "' has orientation '"
-					+ rNotebook.getContentData().getOrientation() + "'");
+			if (rNotebook != null) {
+				rNotebook.setContentData(contentData);
+				logger.debug("Notebook '" + rNotebook.getName() + "' has orientation '"
+						+ rNotebook.getContentData().getOrientation() + "'");
 
-			ContentMetaData metadataNotebook = getMetaDataById(notebookID);
-			rNotebook.setMetaData(metadataNotebook);
+				ContentMetaData metadataNotebook = getMetaDataById(notebookID);
+				rNotebook.setMetaData(metadataNotebook);
 
-			rNotebook.setCurrentPageNumber(metadataNotebook.currentPage);
-			logger.debug("Current page of '" + rNotebook.getName() + "' is " + rNotebook.getCurrentPageNumber() + "");
+				rNotebook.setCurrentPageNumber(metadataNotebook.currentPage);
+				logger.debug(
+						"Current page of '" + rNotebook.getName() + "' is " + rNotebook.getCurrentPageNumber() + "");
 
-			File currentPageFile = rNotebook.getThumbnail();
-			if (currentPageFile != null) {
-				logger.debug("Current page of '" + rNotebook.getName() + "' is " + rNotebook.getThumbnail() + "");
-			}
+				File currentPageFile = rNotebook.getThumbnail();
+				if (currentPageFile != null) {
+					logger.debug("Current page of '" + rNotebook.getName() + "' is " + rNotebook.getThumbnail() + "");
+				}
 
-			rNotebook.setType(metadataNotebook.type);
-			logger.debug("Type of '" + rNotebook.getName() + "' is " + rNotebook.getType() + "");
+				rNotebook.setType(metadataNotebook.type);
+				logger.debug("Type of '" + rNotebook.getName() + "' is " + rNotebook.getType() + "");
 
-			List<String> parents = getParentFolders(notebookID);
-			rNotebook.setFolders(parents);
+				List<String> parents = getParentFolders(notebookID);
+				rNotebook.setFolders(parents);
 
-			if (rNotebook.getFolders().size() > 0) {
-				logger.debug("Path of '" + rNotebook.getName() + "' is " + rNotebook.getFolders() + "");
+				if (rNotebook.getFolders().size() > 0) {
+					logger.debug("Path of '" + rNotebook.getName() + "' is " + rNotebook.getFolders() + "");
+				} else {
+					logger.debug("Path of '" + rNotebook.getName() + "' is ROOT");
+				}
+
+				addContent(rNotebook);
 			} else {
-				logger.debug("Path of '" + rNotebook.getName() + "' is ROOT");
+				logger.error("Reading content from file. Notebook '"+notebookName+"' not found.");
 			}
-
-			addContent(rNotebook);
 		} catch (IOException e) {
 			// logger.error("Error extracting file "+fileWithPathInsideZip +" from
 			// "+zipFile.getName());
@@ -456,6 +463,9 @@ public class RemarkableManager {
 	 * Read notebooks from local storage to memory.
 	 */
 	public void readContents() {
+		
+		Util.deleteDirectory(new File(DOCUMENT_STORAGE));
+		
 		if (DOCUMENT_STORAGE != null) {
 			ArrayList<File> files = Util.listFiles(new File(DOCUMENT_STORAGE), "zip");
 			for (File file : files) {
@@ -464,7 +474,7 @@ public class RemarkableManager {
 				}
 			}
 		} else {
-			logger.error("Could not read contents, because '"+PropertiesCache.NOTEBOOKFOLDER+"' is null");
+			logger.error("Could not read contents, because '" + PropertiesCache.NOTEBOOKFOLDER + "' is null");
 		}
 	}
 
@@ -565,6 +575,22 @@ public class RemarkableManager {
 		return metaDataNotebooks;
 	}
 
+	public void exportNotebookThumbnails(boolean forceOverwrite) {
+		for (Content notebook : getNotebooks()) {
+
+			Util.createSvg(notebook, forceOverwrite);
+
+			for (Page page : notebook.getPages()) {
+				try {
+					Svg2Png.createThumbnailFromFile(page, forceOverwrite);
+				} catch (TranscoderException | IOException e) {
+					logger.error("Error creating png", e);
+				}
+			}
+
+		}
+	}
+
 	/**
 	 * Export all notebooks.
 	 */
@@ -615,7 +641,7 @@ public class RemarkableManager {
 	 * @param notebook the notebook
 	 */
 	public void exportNotebook(Content notebook) {
-		Util.createSvg(notebook);
+		Util.createSvg(notebook, true);
 
 		double scale = PropertiesCache.getInstance().getDouble(PropertiesCache.PNGEXPORTSCALE);
 		Util.createPng(notebook, scale);
